@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>متجرك الفاخر</title>
+  <style>
+    :root {
+      --primary-color: #4ca1af;
+      --secondary-color: #c4e0e5;
+      --accent-color: #e96443;
+      --accent-dark: #904e95;
+      --header-bg: linear-gradient(90deg, #2c3e50, #4ca1af);
+      --error-color: #e74c3c;
+      --font-size-base: 1em;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f0f4f8;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      font-size: var(--font-size-base);
+    }
+    header {
+      background: var(--header-bg);
+      color: #fff;
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    header img { max-height:60px; border-radius:5px; margin-left:10px; border:2px solid #fff; }
+    header h1 { font-size:1.8em; margin:0; font-weight:bold; }
+    .container {
+      max-width:900px; margin:30px auto; background:#fff;
+      padding:25px 30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.1);
+      position:relative;
+    }
+    .container::before {
+      content:""; position:absolute; top:-5px; right:-5px; bottom:-5px; left:-5px;
+      background:linear-gradient(135deg,var(--accent-color),var(--accent-dark)); z-index:-1;
+      border-radius:15px; opacity:0.2;
+    }
+    h2,h3 { margin:15px 0 10px; color:#2c3e50; font-size:1.2em; }
+    .main-title { font-size:2em; text-align:center; margin-bottom:20px;
+      background:linear-gradient(90deg,var(--accent-color),var(--accent-dark));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    button {
+      padding:10px 20px; margin:10px 0; border:none; border-radius:5px;
+      background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));
+      color:#fff; cursor:pointer; transition:background .3s,transform .2s;
+      font-size:var(--font-size-base);
+    }
+    button:hover { background:linear-gradient(90deg,#3b8c98,#a1d0d5); transform:translateY(-2px); }
+    input,select,textarea {
+      padding:10px; margin:5px 0; border-radius:5px; border:1px solid #ccc;
+      width:100%; box-sizing:border-box; transition:border-color .3s;
+      font-size:var(--font-size-base);
+    }
+    input:focus,select:focus,textarea:focus { border-color:var(--primary-color); outline:none; }
+    #categoryNav { display:flex; gap:10px; overflow-x:auto;
+      margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #eee;
+    }
+    #categoryNav button { flex:0 0 auto; background:var(--primary-color);
+      border-radius:5px; font-size:var(--font-size-base);
+    }
+    #categoryNav button:hover { background:#357f91; }
+    #productContainer { display:flex; flex-direction:column; gap:15px; }
+    .dish { border:1px solid #ddd; border-radius:8px; background:#fafafa;
+      padding:15px; transition:transform .2s;
+    }
+    .dish:hover { transform:translateY(-3px); }
+    .dish-details p { margin:8px 0; }
+    .dish-images img { max-width:100px; border-radius:5px; margin-top:10px; }
+    .list-item { border:1px solid #ddd; padding:10px; margin:5px 0;
+      border-radius:5px; display:flex; justify-content:space-between;
+      align-items:center; background:#fff;
+    }
+    .list-item button { background:#e74c3c; color:#fff;
+      padding:5px 10px; border-radius:3px; border:none;
+      font-size:var(--font-size-base);
+    }
+    .list-item button:hover { background:#c0392b; }
+    #categoryErrorMsg,#productErrorMsg,#loginErrorMsg {
+      color:var(--error-color); font-weight:bold;
+      font-size:var(--font-size-base); margin:5px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center;">
+      <img id="storeLogo" src="logo.png" alt="شعار المتجر">
+      <h1 id="headerStoreName">متجرك الفاخر</h1>
+    </div>
+    <button id="adminToggleBtn">دخول الإدارة</button>
+  </header>
+
+  <div id="menuView">
+    <div class="container">
+      <h2 class="main-title">منيو المتجر</h2>
+      <nav id="categoryNav"><button data-category="all">الكل</button></nav>
+      <div id="productContainer"></div>
+    </div>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <div class="container">
+      <div id="adminLoginDiv">
+        <h3>دخول المدير</h3>
+        <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
+        <button id="adminLoginBtn">دخول</button>
+        <p id="loginErrorMsg"></p>
+        <button id="backToMenuBtn">عودة للمتجر</button>
+      </div>
+
+      <div id="adminControls" style="display:none;">
+        <h2>لوحة تحكم المدير</h2>
+
+        <section>
+          <h3>تحديث بيانات المتجر</h3>
+          <input type="text" id="storeNameInput" placeholder="اسم المتجر الجديد">
+          <button id="updateStoreBtn">تحديث</button>
+        </section>
+
+        <section>
+          <h3>تحديث شعار المتجر</h3>
+          <input type="file" id="newLogoInput" accept="image/*">
+          <button id="updateLogoBtn">تحديث الشعار</button>
+        </section>
+
+        <section>
+          <h3>تغيير كلمة المرور</h3>
+          <input type="password" id="newAdminPasswordInput" placeholder="كلمة المرور الجديدة">
+          <button id="updatePasswordBtn">تحديث كلمة المرور</button>
+        </section>
+
+        <section>
+          <h3>إضافة فئة جديدة</h3>
+          <input type="text" id="newCategoryInput" placeholder="اسم الفئة">
+          <button id="addCategoryBtn">إضافة الفئة</button>
+          <p id="categoryErrorMsg"></p>
+          <div id="categoriesList"></div>
+        </section>
+
+        <section>
+          <h3>إضافة / تعديل منتج</h3>
+          <select id="productCategorySelect"><option value="">اختر فئة</option></select>
+          <input type="text" id="productNameInput" placeholder="اسم المنتج">
+          <input type="text" id="productPriceInput" placeholder="سعر المنتج (ر.س)">
+          <input type="text" id="productDescriptionInput" placeholder="وصف المنتج">
+          <input type="file" id="productImageInput" accept="image/*">
+          <button id="addProductBtn">إضافة المنتج</button>
+          <p id="productErrorMsg"></p>
+
+          <h3>قائمة المنتجات</h3>
+          <div id="productsList"></div>
+        </section>
+
+        <button id="logoutBtn">الخروج للمتجر</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let categories = [];
+    let products = [];
+    let adminPassword = "ABOD2025";
+    let editingProductId = null;
+
+    // تبديل الواجهة بين المستخدم والإدارة
+    document.getElementById('adminToggleBtn').addEventListener('click', () => {
+      document.getElementById('menuView').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('adminLoginDiv').style.display = 'block';
+      document.getElementById('adminControls').style.display = 'none';
+    });
+
+    // تسجيل دخول المدير
+    document.getElementById('adminLoginBtn').addEventListener('click', () => {
+      const input = document.getElementById('adminPasswordInput').value;
+      if (input === adminPassword) {
+        document.getElementById('adminLoginDiv').style.display = 'none';
+        document.getElementById('adminControls').style.display = 'block';
+        document.getElementById('loginErrorMsg').textContent = '';
+      } else {
+        document.getElementById('loginErrorMsg').textContent = 'كلمة المرور غير صحيحة';
+      }
+    });
+
+    // خروج المدير
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('menuView').style.display = 'block';
+    });
+    document.getElementById('backToMenuBtn').addEventListener('click', () => {
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('menuView').style.display = 'block';
+    });
+
+    // دوال التحديث والعرض
+    function populateCategories() {
+      const list = document.getElementById('categoriesList');
+      list.innerHTML = '';
+      categories.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <span>${c}</span>
+          <button class="delete-category" data-index="${i}">حذف</button>
+        `;
+        list.appendChild(div);
+      });
+
+      const sel = document.getElementById('productCategorySelect');
+      sel.innerHTML = '<option value="">اختر فئة</option>';
+      categories.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c;
+        o.textContent = c;
+        sel.appendChild(o);
+      });
+
+      // شريط التنقل في القائمة الرئيسية
+      const nav = document.getElementById('categoryNav');
+      nav.innerHTML = <button data-category="all">الكل</button>;
+      categories.forEach(c => {
+        const b = document.createElement('button');
+        b.dataset.category = c;
+        b.textContent = c;
+        nav.appendChild(b);
+      });
+    }
+
+    function populateProducts(filter = 'all') {
+      const cont = document.getElementById('productContainer');
+      cont.innerHTML = '';
+      let found = false;
+
+      products.forEach(p => {
+        if (filter === 'all' || p.category === filter) {
+          found = true;
+          const d = document.createElement('div');
+          d.className = 'dish';
+          d.innerHTML = `
+            <div class="dish-details">
+              <p><strong>${p.name}</strong></p>
+              <p>الفئة: ${p.category}</p>
+              <p>السعر: ${p.price} ر.س</p>
+              ${p.description ? <p>الوصف: ${p.description}</p> : ''}
+            </div>
+            ${p.image
+              ? `<div class="dish-images">
+                   <img src="${p.image}" alt="${p.name}">
+                 </div>`
+              : ''
+            }
+          `;
+          cont.appendChild(d);
+        }
+      });
+
+      if (!found) {
+        cont.innerHTML = '<p>لا توجد منتجات لهذه الفئة</p>';
+      }
+    }
+
+    function renderProductList() {
+      const pl = document.getElementById('productsList');
+      pl.innerHTML = '';
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <span>${p.name} - ${p.category}</span>
+          <button class="edit-product-admin" data-id="${p.id}">تعديل</button>
+          <button class="delete-product-admin" data-id="${p.id}">حذف</button>
+        `;
+        pl.appendChild(div);
+      });
+    }
+
+    function updateDisplay(filter = 'all') {
+      populateCategories();
+      populateProducts(filter);
+      renderProductList();
+      // العودة لوضع الإضافة إذا كنا في وضع تعديل
+      if (editingProductId === null) {
+        document.getElementById('addProductBtn').textContent = 'إضافة المنتج';
+      }
+    }
+
+    // إضافة فئة جديدة
+    document.getElementById('addCategoryBtn').addEventListener('click', () => {
+      const v = document.getElementById('newCategoryInput').value.trim();
+      const e = document.getElementById('categoryErrorMsg');
+      e.textContent = '';
+      if (!v) { e.textContent = 'الرجاء إدخال اسم الفئة'; return; }
+      if (categories.includes(v)) { e.textContent = 'لا يمكن إضافة فئة بنفس الاسم'; return; }
+      categories.push(v);
+      document.getElementById('newCategoryInput').value = '';
+      updateDisplay();
+    });
+
+    // حذف فئة
+    document.getElementById('categoriesList').addEventListener('click', e => {
+      if (e.target.classList.contains('delete-category')) {
+        const i = parseInt(e.target.dataset.index, 10);
+        const c = categories[i];
+        const err = document.getElementById('categoryErrorMsg');
+        err.textContent = '';
+        if (products.some(p => p.category === c)) {
+          err.textContent = 'لا يمكن حذف الفئة، توجد منتجات مرتبطة بها';
+          return;
+        }
+        categories.splice(i, 1);
+        updateDisplay();
+      }
+    });
+
+    // إضافة أو حفظ المنتج
+    document.getElementById('addProductBtn').addEventListener('click', () => {
+      const err = document.getElementById('productErrorMsg');
+      err.textContent = '';
+      const cat = document.getElementById('productCategorySelect').value;
+      const nm = document.getElementById('productNameInput').value.trim();
+      const pv = document.getElementById('productPriceInput').value.trim();
+      if (!cat) { err.textContent = 'الرجاء اختيار الفئة'; return; }
+      if (!nm) { err.textContent = 'الرجاء إدخال اسم المنتج'; return; }
+      if (pv === '' || isNaN(parseFloat(pv))) { err.textContent = 'الرجاء إدخال السعر بشكل صحيح'; return; }
+      const pr = parseFloat(pv);
+      const desc = document.getElementById('productDescriptionInput').value.trim();
+      const f = document.getElementById('productImageInput').files[0];
+
+      const finalize = img => {
+        if (editingProductId === null) {
+          // إضافة جديد
+          products.push({
+            id: Date.now(),
+            category: cat,
+            name: nm,
+            price: pr,
+            description: desc,
+            image: img
+          });
+        } else {
+          // حفظ التعديلات
+          const idx = products.findIndex(p => p.id === editingProductId);
+          if (idx > -1) {
+            products[idx] = {
+              ...products[idx],
+              category: cat,
+              name: nm,
+              price: pr,
+              description: desc,
+              image: img || products[idx].image
+            };
+          }
+          editingProductId = null;
+        }
+
+        // إعادة ضبط الحقول
+        document.getElementById('productNameInput').value = '';
+        document.getElementById('productPriceInput').value = '';
+        document.getElementById('productDescriptionInput').value = '';
+        document.getElementById('productImageInput').value = '';
+        updateDisplay();
+      };
+
+      if (f) {
+        const reader = new FileReader();
+        reader.onload = e => finalize(e.target.result);
+        reader.readAsDataURL(f);
+      } else {
+        finalize();
+      }
+    });
+
+    // حذف أو تعديل منتج من قائمة المدير
+    document.getElementById('productsList').addEventListener('click', e => {
+      const id = parseInt(e.target.dataset.id, 10);
+
+      if (e.target.classList.contains('delete-product-admin')) {
+        products = products.filter(p => p.id !== id);
+        updateDisplay();
+      }
+
+      if (e.target.classList.contains('edit-product-admin')) {
+        const p = products.find(item => item.id === id);
+        if (!p) return;
+        // تعبئة الحقول
+        document.getElementById('productCategorySelect').value = p.category;
+        document.getElementById('productNameInput').value = p.name;
+        document.getElementById('productPriceInput').value = p.price;
+        document.getElementById('productDescriptionInput').value = p.description || '';
+        // لا يمكن تعبئة ملف الصورة برمجياً، لكن يبقى القديم عند عدم التغيير
+        editingProductId = id;
+        document.getElementById('addProductBtn').textContent = 'حفظ التعديلات';
+      }
+    });
+
+    // تنقل في المتجر حسب الفئة
+    document.getElementById('categoryNav').addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON') {
+        updateDisplay(e.target.dataset.category);
+      }
+    });
+
+    // باقي أزرار التحديث (اسم المتجر، الشعار، كلمة المرور)
+    document.getElementById('updateStoreBtn').addEventListener('click', () => {
+      const v = document.getElementById('storeNameInput').value.trim();
+      if (v) {
+        document.getElementById('headerStoreName').textContent = v;
+        document.getElementById('storeNameInput').value = '';
+      }
+    });
+
+    document.getElementById('updateLogoBtn').addEventListener('click', () => {
+      const f = document.getElementById('newLogoInput').files[0];
+      if (f) {
+        const r = new FileReader();
+        r.onload = e => document.getElementById('storeLogo').src = e.target.result;
+        r.readAsDataURL(f);
+      }
+    });
+
+    document.getElementById('updatePasswordBtn').addEventListener('click', () => {
+      const v = document.getElementById('newAdminPasswordInput').value.trim();
+      if (v) {
+        adminPassword = v;
+        alert('تم تحديث كلمة المرور');
+        document.getElementById('newAdminPasswordInput').value = '';
+      }
+    });
+
+    // الإطلاق الأولي للعرض
+    updateDisplay();
+  </script>
+</body>
+</html>
